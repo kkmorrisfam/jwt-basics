@@ -9,14 +9,14 @@ const CustomAPIError = require("../errors/custom-error");
 
 const login = async (req, res) => {
   const { username, password } = req.body;
-  // console.log(`${username} ${password}`)
+  console.log(`${username} ${password}`)
   // validation options:
   // mongoose validation
   // Joi  package, use later
   // check in the controller
 
   if (!username || !password) {
-    throw new CustomAPIError("Please provide email and password", 400);
+    throw new CustomAPIError('Please provide email and password', 400);
   }
 
   //for testing/demo, normally provided by DB
@@ -28,14 +28,7 @@ const login = async (req, res) => {
     expiresIn: "30d",
   });
 
-try {
-    const decoded = jwt.verify(token process.env.JWT_SECRET)
-} catch (error) {
-    throw new CustomAPIError('Not authorized to access this route', 401)
-}
-
-//   console.log(token);
-  //   console.log(username, password);
+  console.log(username, password);
   res.status(200).json({ msg: "user created", token });
 };
 
@@ -43,15 +36,31 @@ const dashboard = async (req, res) => {
   console.log(req.headers);
 
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer")) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    console.log('custom error no authHeader')
     throw new CustomAPIError("No token provided", 401);
   }
 
-  const luckyNumber = Math.floor(Math.random() * 100);
-  res.status(200).json({
-    msg: `Hello, John Doe`,
-    secret: `Here it is your authorized data, your lucky number is ${luckyNumber}`,
-  });
+  const token = authHeader.split(' ')[1]
+  console.log(token);
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    console.log("decoded", decoded)
+    
+    const luckyNumber = Math.floor(Math.random() * 100);
+    res.status(200).json({
+      msg: `Hello, ${decoded.username}`,
+      secret: `Here it is your authorized data, your lucky number is ${luckyNumber}`,
+    });
+
+} catch (error) {
+    throw new CustomAPIError('Not authorized to access this route', 401)
+}
+
+
+
+
+  
 };
 
 module.exports = {
